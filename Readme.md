@@ -1,0 +1,1 @@
+# FinBoard follows a configuration-driven, layered architecture where widgets are pure data objects, state is centrally managed via Zustand, data fetching is abstracted through a scheduler and cache layer, and the UI dynamically renders dashboards based on persisted configuration.
