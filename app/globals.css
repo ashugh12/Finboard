@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+/* DEFAULT = LIGHT */
+:root {
+  --bg: #f9fafb;
+  --card-bg: #ffffff;
+  --text: #111827;
+  --border: #e5e7eb;
+}
+
+/* DARK OVERRIDE */
+:root[data-theme="dark"] {
+  --bg: #000000;
+  --card-bg: #343437;
+  --text: #e5e7eb;
+  --border: #1e293b;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
