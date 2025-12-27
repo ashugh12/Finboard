@@ -1,4 +1,11 @@
+# Dashboard
+<p align="center" style="margin: 0;">
+  <img src="./public/image.png" width="1050" />
+</p>
+
+
 # Diagram
+
 ## 1. Application Architecture
 
 <p align="center" style="margin: 0;">
