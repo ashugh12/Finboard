@@ -34,7 +34,8 @@ export default function Home() {
       startWidgetPolling(
         widget.id,
         widget.apis[0].urls,
-        widget.apis[0].refreshInterval
+        widget.apis[0].refreshInterval,
+        widget.viewType
       );
     });
   }, [widgets]);
@@ -53,7 +54,8 @@ export default function Home() {
     startWidgetPolling(
       widget.id,
       widget.apis[0].urls,
-      widget.apis[0].refreshInterval
+      widget.apis[0].refreshInterval,
+      widget.viewType
     );
   }
 
@@ -146,7 +148,7 @@ export default function Home() {
       {/* Dashboard Area with Gray Background */}
       {!showHelp &&
         <div
-          className="p-4 sm:p-6 min-h-[calc(100vh-200px)] relative"
+          className="p-4 sm:p-6 min-h-[calc(111vh-200px)] relative"
           style={{
             backgroundColor: theme === "light" ? "#e5e7eb" : "#1f2937",
           }}

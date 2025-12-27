@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Diagram
+## 1. Application Architecture
 
-## Getting Started
+<p align="center" style="margin: 0;">
+  <img src="./public/ApplicationArchitecture.svg" width="500" />
+</p>
 
-First, run the development server:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 2. API Integration using Adapters
+<p align="center" style="margin: 0;">
+  <img src="./public/API_Architecture.svg" width="500" />
+</p>
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# Feature
+## 1. Widget Management Feature
+Widgets are defined using a strongly typed `Widget` model that includes API
+configuration, selected fields, and view-specific options. All widget
+instances are managed through a centralized Zustand store that supports
+creation, removal, layout adjustment, and reconfiguration, allowing widgets
+to be persisted and edited independently of the UI.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 2. Data Persistence
+Widget configurations and dashboard layouts are persisted using browser storage via Zustand’s `persist` middleware.
+Cached API responses and widget state allow the dashboard to recover fully on page refresh or browser restart.
+The application restores widgets, layout, and polling state automatically after reload.
+Dashboard configurations can be exported and imported using service-layer utilities that interact with the layout store.
+Import/export functionality enables configuration backup and portability across sessions.

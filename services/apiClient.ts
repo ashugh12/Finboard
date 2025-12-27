@@ -13,7 +13,7 @@ export async function fetchApi(url: string): Promise<any> {
     return cached;
   }
 
-  // Check for pending request (deduplication)
+  // Check for pending request 
   const pending = apiCache.getPendingRequest(url);
   if (pending) {
     return pending;
@@ -41,7 +41,7 @@ async function fetchWithRetry(url: string, retries = 2): Promise<any> {
     } catch (error: any) {
       if (attempt === retries) throw error;
       
-      // Wait before retry (simple delay: 500ms, 1s)
+      // Wait before retry 
       await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
     }
   }

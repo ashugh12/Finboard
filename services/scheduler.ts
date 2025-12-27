@@ -5,13 +5,17 @@
 import { fetchApi } from "./apiClient";
 import { useWidgetDataStore } from "@/stores/widgetDataStore";
 import { apiCache } from "./cache";
+import { fetchAndNormalizeApiData } from "@/services/fetchWithAdapter";
+import { extractApiProvider } from "@/utils/extractAPIProvider";
+
 
 const activeIntervals = new Map<string, NodeJS.Timeout>();
 
 export function startWidgetPolling(
   widgetId: string,
   url: string,
-  intervalSeconds: number
+  intervalSeconds: number,
+  viewType: string
 ): NodeJS.Timeout | null {
   if (!url) return null;
 
@@ -25,11 +29,17 @@ export function startWidgetPolling(
       setData(widgetId, { status: "loading" });
       
       // Use cache-aware fetch (will use cache if available and fresh)
-      const data = await fetchApi(url);
+      const normalizedData = await fetchAndNormalizeApiData(
+        extractApiProvider(url),
+        url,
+        viewType
+      );
+
+      console.log(normalizedData);
       
       setData(widgetId, {
         status: "success",
-        data,
+        data:normalizedData,  //change here
         lastFetchedAt: Date.now(),
       });
     } catch (err: any) {
@@ -45,7 +55,7 @@ export function startWidgetPolling(
   fetchAndUpdate();
 
   // Set up interval
-  const interval = setInterval(fetchAndUpdate, intervalSeconds * 1000);
+  const interval = setInterval(fetchAndUpdate, intervalSeconds * 10);
   activeIntervals.set(widgetId, interval);
 
   return interval;

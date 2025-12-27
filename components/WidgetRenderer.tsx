@@ -11,6 +11,7 @@ import { TableView } from "./subcomponents/tableView";
 import { ChartView } from "./subcomponents/chartView";
 import { Widget } from "@/types/widget";
 import { FiEdit2, FiX, FiSave, FiXCircle } from "react-icons/fi";
+import { getValue } from "@/utils/getValue";
 
 export function WidgetRenderer({ id, onEdit}: { id: string, onEdit:(widget: Widget)=>void; }) {
   const widget = useWidgetStore((s) => s.widgets[id]);
@@ -21,6 +22,10 @@ export function WidgetRenderer({ id, onEdit}: { id: string, onEdit:(widget: Widg
   const removeWidget = useWidgetStore((s) => s.removeWidget);
   const removeFromLayout = useLayoutStore((s) => s.removeFromLayout);
   const moveWidget = useLayoutStore((s) => s.moveWidget);
+
+  // Determine if this is a Vantage widget (longer content)
+  const source = dataState?.data?.meta ? getValue(dataState.data.meta, "source") : null;
+  const isVantageWidget = source === "alphavantage-time-series";
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [tempFields, setTempFields] = useState<string[]>(
@@ -68,7 +73,7 @@ function handleSave() {
       onDrop={(e) =>
         moveWidget(e.dataTransfer.getData("draggedId"), id)
       }
-      className={`rounded-lg p-4 sm:p-5 transition-all duration-200 ${isExpanded ? "col-span-2" : ""}`}
+      className={`rounded-lg p-4 sm:p-5 transition-all duration-200 ${isExpanded ? "col-span-2" : ""} ${isVantageWidget && widget.viewType === "card" ? "row-span-2" : ""}`}
       style={{
         backgroundColor: "var(--card-bg)",
         border: "1px solid var(--border)",
@@ -107,7 +112,7 @@ function handleSave() {
       {!isExpanded && dataState?.status === "success" && (
         <>
           {widget.viewType === "card" && (
-            <CardView widget={widget} data={dataState.data} />
+            <CardView widget={widget} data={widget?.fields} dataState={dataState.data} />
           )}
 
           {widget.viewType === "table" && (
@@ -170,8 +175,9 @@ function handleSave() {
               {widget.viewType === "card" && (
                 <CardView
                   widget={widget}
-                  data={dataState?.data}
+                  data={widget?.fields}
                   previewFields={tempFields}
+                  dataState={dataState.data}
                 />
               )}
 
