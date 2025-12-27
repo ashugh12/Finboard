@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useWidgetStore } from "@/stores/widgetStore";
 import { useWidgetDataStore } from "@/stores/widgetDataStore";
 import { useLayoutStore } from "@/stores/layoutStore";
@@ -13,7 +13,7 @@ import { Widget } from "@/types/widget";
 import { FiEdit2, FiX, FiSave, FiXCircle } from "react-icons/fi";
 import { getValue } from "@/utils/getValue";
 
-export function WidgetRenderer({ id, onEdit}: { id: string, onEdit:(widget: Widget)=>void; }) {
+export function WidgetRenderer({ id, onEdit }: { id: string, onEdit: (widget: Widget) => void; }) {
   const widget = useWidgetStore((s) => s.widgets[id]);
   const dataState = useWidgetDataStore((s) => s.dataMap[id]);
   const theme = useThemeStore((s) => s.theme);
@@ -39,16 +39,16 @@ export function WidgetRenderer({ id, onEdit}: { id: string, onEdit:(widget: Widg
     if (!dataState?.data) return [];
     return extractPaths(dataState.data);
   }, [dataState?.data]);
-  
+
   function toggleField(path: string) {
     setTempFields((prev) =>
       prev.includes(path)
-    ? prev.filter((p) => p !== path)
-    : [...prev, path]
-  );
-}
+        ? prev.filter((p) => p !== path)
+        : [...prev, path]
+    );
+  }
 
-function handleSave() {
+  function handleSave() {
     updateWidget(id, {
       fields: tempFields.map((path) => ({
         path,
@@ -63,6 +63,30 @@ function handleSave() {
     setIsExpanded(false);
   }
 
+  /* Numeric Countdown Logic */
+  const [timeLeft, setTimeLeft] = useState(0);
+  const refreshInterval = widget.apis[0].refreshInterval || 30;
+  const lastFetchedAt = dataState?.lastFetchedAt;
+
+  useEffect(() => {
+    if (dataState?.status === "loading") return;
+
+    // Calculate target time based on last successful fetch
+    const baseTime = lastFetchedAt || Date.now();
+    const targetTime = baseTime + (refreshInterval * 1000);
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const remaining = Math.ceil((targetTime - now) / 1000);
+      setTimeLeft(remaining > 0 ? remaining : 0);
+    };
+
+    updateTimer(); // Initial call
+    const timerId = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(timerId);
+  }, [lastFetchedAt, refreshInterval, dataState?.status]);
+
   return (
     <div
       draggable
@@ -73,19 +97,33 @@ function handleSave() {
       onDrop={(e) =>
         moveWidget(e.dataTransfer.getData("draggedId"), id)
       }
-      className={`rounded-lg p-4 sm:p-5 transition-all duration-200 ${isExpanded ? "col-span-2" : ""} ${isVantageWidget && widget.viewType === "card" ? "row-span-2" : ""}`}
+      className={`relative rounded-lg p-4 sm:p-5 transition-all duration-300 ${isExpanded ? "col-span-2" : ""} ${isVantageWidget && widget.viewType === "card" ? "row-span-2" : ""}`}
       style={{
         backgroundColor: "var(--card-bg)",
-        border: "1px solid var(--border)",
+        border: dataState?.status === "loading"
+          ? `2px solid ${theme === "light" ? "#8b5cf6" : "#ffffff"}`
+          : "1px solid var(--border)",
+        boxShadow: dataState?.status === "loading"
+          ? `0 0 15px ${theme === "light" ? "rgba(139, 92, 246, 0.4)" : "rgba(255, 255, 255, 0.2)"}`
+          : "none",
       }}
     >
       {/* HEADER */}
-      <div className="flex justify-between items-start mb-3 sm:mb-4">
+      <div className="flex justify-between items-start mb-3 sm:mb-4 relative z-10">
         <h3 className="font-semibold text-base sm:text-lg" style={{ color: 'var(--text)' }}>
           {widget.name}
         </h3>
 
         <div className="flex gap-2">
+          {/* COUNTDOWN DISPLAY */}
+          {dataState?.status !== "loading" && (
+            <div className="flex items-center justify-center px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 mr-1">
+              <span className="text-xs font-mono font-medium opacity-70" style={{ color: 'var(--text)' }}>
+                {timeLeft}s
+              </span>
+            </div>
+          )}
+
           <button
             onClick={() => onEdit(widget)}
             className="p-1.5 sm:p-2 rounded-lg hover:opacity-80 transition-opacity"
@@ -126,13 +164,11 @@ function handleSave() {
       )}
 
       {dataState?.status === "loading" && (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-t-transparent" style={{ borderColor: theme === "light" ? "#8b5cf6" : "#ffffff" }} />
-        </div>
+        <div className="flex-1" />
       )}
 
       {dataState?.status === "error" && (
-        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 relative z-10">
           <p className="text-sm text-red-600 dark:text-red-400">{dataState.error}</p>
         </div>
       )}
@@ -140,7 +176,7 @@ function handleSave() {
       {/* EXPANDED EDIT VIEW */}
       {isExpanded && (
         <>
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
             {/* LEFT: FIELD SELECTOR */}
             <div>
               <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--text)' }}>
@@ -201,7 +237,7 @@ function handleSave() {
           </div>
 
           {/* ACTIONS */}
-          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 mt-4 pt-4 border-t" style={{ borderColor: "var(--border)" }}>
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 mt-4 pt-4 border-t relative z-10" style={{ borderColor: "var(--border)" }}>
             <button
               onClick={handleCancel}
               className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border text-sm transition-all duration-200 hover:opacity-80"

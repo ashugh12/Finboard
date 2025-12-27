@@ -27,7 +27,7 @@ export function startWidgetPolling(
   async function fetchAndUpdate() {
     try {
       setData(widgetId, { status: "loading" });
-      
+
       // Use cache-aware fetch (will use cache if available and fresh)
       const normalizedData = await fetchAndNormalizeApiData(
         extractApiProvider(url),
@@ -36,10 +36,13 @@ export function startWidgetPolling(
       );
 
       console.log(normalizedData);
-      
+
+      // Artificial delay to ensure user sees the "refreshing" state
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       setData(widgetId, {
         status: "success",
-        data:normalizedData,  //change here
+        data: normalizedData,  //change here
         lastFetchedAt: Date.now(),
       });
     } catch (err: any) {
@@ -55,7 +58,7 @@ export function startWidgetPolling(
   fetchAndUpdate();
 
   // Set up interval
-  const interval = setInterval(fetchAndUpdate, intervalSeconds * 10);
+  const interval = setInterval(fetchAndUpdate, intervalSeconds * 1000);
   activeIntervals.set(widgetId, interval);
 
   return interval;
